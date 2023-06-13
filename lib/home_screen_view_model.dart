@@ -1,9 +1,6 @@
-import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomeScreenViewModel extends ChangeNotifier {
+class HomeScreenViewModel {
   List<String> todos = [];
   SharedPreferences? _prefs;
 
@@ -15,13 +12,11 @@ class HomeScreenViewModel extends ChangeNotifier {
   Future<void> addTodo(String todo) async {
     todos.add(todo);
     await _saveTodos();
-    notifyListeners();
   }
 
   Future<void> removeTodo(int index) async {
     todos.removeAt(index);
     await _saveTodos();
-    notifyListeners();
   }
 
   Future<void> _saveTodos() async {
