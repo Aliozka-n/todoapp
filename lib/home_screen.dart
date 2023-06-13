@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo/const_values.dart';
+
+import 'home_screen_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,71 +11,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
+  HomeScreenViewModel viewModel = HomeScreenViewModel();
   @override
   void initState() {
-    loadTodos();
+    viewModel.loadTodos();
     super.initState();
-  }
-
-  List<String> todos = [];
-  SharedPreferences? _prefs;
-
-  Future<void> loadTodos() async {
-    _prefs = await SharedPreferences.getInstance();
-    todos = _prefs!.getStringList('todos') ?? [];
-    setState(() {});
-    notifyListeners();
-  }
-
-  Future<void> addTodo(String todo) async {
-    todos.add(todo);
-    await _saveTodos();
-    setState(() {});
-
-    notifyListeners();
-  }
-
-  Future<void> removeTodo(int index) async {
-    todos.removeAt(index);
-    await _saveTodos();
-    setState(() {});
-
-    notifyListeners();
-  }
-
-  Future<void> _saveTodos() async {
-    await _prefs!.setStringList('todos', todos);
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController controller = TextEditingController();
-
-    void _addTodo() async {
-      final todo = controller.text;
-      if (todo.isNotEmpty) {
-        await addTodo(todo);
-        setState(() {
-          controller.clear();
-        });
-      }
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (todos.isNotEmpty)
+        if (viewModel.todos.isNotEmpty)
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 8),
               child: ListView.builder(
-                itemCount: todos.length,
+                itemCount: viewModel.todos.length,
                 itemBuilder: (context, index) {
                   return Card(
                     color: ConstValues.primaryColor,
                     child: ListTile(
                       title: Text(
-                        todos[index],
+                        viewModel.todos[index],
                         style: TextStyle(color: ConstValues.whiteColor),
                       ),
                       trailing: IconButton(
@@ -83,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
                           color: ConstValues.redColor,
                         ),
                         onPressed: () async {
-                          buildDeleteShowDialog(context, index);
+                          removeShowDialog(context, index);
                         },
                       ),
                     ),
@@ -92,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
               ),
             ),
           ),
-        if (todos.isEmpty)
+        if (viewModel.todos.isEmpty)
           Expanded(child: Center(child: Text(ConstValues.noTodo))),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -100,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
             style: ElevatedButton.styleFrom(
                 backgroundColor: ConstValues.primaryColor),
             onPressed: () {
-              buildAddShowDialog(context);
+              addShowDialog(context);
             },
             child: Text(ConstValues.addButton),
           ),
@@ -109,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
     );
   }
 
-  Future<dynamic> buildAddShowDialog(BuildContext context) {
+  Future<dynamic> addShowDialog(BuildContext context) {
     TextEditingController controller = TextEditingController();
     return showDialog(
         context: context,
@@ -117,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
           return Dialog(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0)), //this right here
-            child: Container(
+            child: SizedBox(
               height: MediaQuery.of(context).size.height / 5,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -132,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
                         hintText: ConstValues.addTodo,
                         prefixIcon: Icon(Icons.ac_unit,
                             color: ConstValues.primaryColor),
-                        focusedBorder: UnderlineInputBorder(
+                        focusedBorder: const UnderlineInputBorder(
                           borderSide: BorderSide(
                             color: Colors.brown,
                           ),
@@ -146,14 +106,16 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
                           backgroundColor: ConstValues.primaryColor,
                         ),
                         onPressed: () {
-                          if (controller.text.isNotEmpty)
-                            addTodo(controller.text);
+                          if (controller.text.isNotEmpty) {
+                            viewModel.addTodo(controller.text);
+                          }
                           controller.clear();
+                          setState(() {});
                           Navigator.of(context).pop();
                         },
                         child: Text(
                           ConstValues.addButton,
-                          style: TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     )
@@ -165,14 +127,14 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
         });
   }
 
-  Future<dynamic> buildDeleteShowDialog(BuildContext context, int index) {
+  Future<dynamic> removeShowDialog(BuildContext context, int index) {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
           return Dialog(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0)), //this right here
-            child: Container(
+            child: SizedBox(
               height: MediaQuery.of(context).size.height / 5,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
@@ -184,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
                       elevation: 5,
                       child: ListTile(
                           title: Text(
-                              "${todos[index]} ${ConstValues.deleteText}")),
+                              "${viewModel.todos[index]} ${ConstValues.deleteText}")),
                     ),
                     Center(
                       child: SizedBox(
@@ -194,12 +156,13 @@ class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
                             backgroundColor: ConstValues.primaryColor,
                           ),
                           onPressed: () {
-                            removeTodo(index);
+                            viewModel.removeTodo(index);
+                            setState(() {});
                             Navigator.of(context).pop();
                           },
                           child: Text(
                             ConstValues.delete,
-                            style: TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ),

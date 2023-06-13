@@ -3,9 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo/const_values.dart';
 import 'package:todo/home_screen.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -20,10 +22,12 @@ class _MyAppState extends State<MyApp> {
   Future<void> loadisDark() async {
     _prefs = await SharedPreferences.getInstance();
     bool? dark = _prefs!.getBool('isDark') ?? true;
-    if (dark == null)
+    // ignore: unnecessary_null_comparison
+    if (dark == null) {
       isDark = true;
-    else
+    } else {
       isDark = dark;
+    }
     setState(() {});
   }
 
@@ -44,7 +48,7 @@ class _MyAppState extends State<MyApp> {
           child: Scaffold(
             appBar: buildAppBar(),
             drawer: buildDrawer(),
-            body: HomeScreen(),
+            body: const HomeScreen(),
           ),
         ));
   }
@@ -67,7 +71,7 @@ class _MyAppState extends State<MyApp> {
           child: Center(
             child: Text(
               ConstValues.settings,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24,
               ),
