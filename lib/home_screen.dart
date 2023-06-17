@@ -10,12 +10,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with ChangeNotifier {
+class _HomeScreenState extends State<HomeScreen> {
   HomeScreenViewModel viewModel = HomeScreenViewModel();
   @override
   void initState() {
-    viewModel.loadTodos();
     super.initState();
+    viewModel.loadTodos().then((_) {
+      setState(() {});
+    });
   }
 
   @override
